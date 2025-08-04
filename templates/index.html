@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MediThanks AI</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/5.1.1/js/bootstrap.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        .polish-options {
+            margin: 20px 0;
+        }
+        .chat-history {
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        .btn-polish {
+            width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin: 5px;
+            min-width: 170px;
+        }
+        .form-group {
+            margin-bottom: 0.75rem;
+        }
+        textarea {
+            width: 100%;
+            min-height: 100px;
+        }
+        .card textarea {
+            width: 100%;
+            min-height: 100px;
+            margin-bottom: 10px;
+        }
+        
+        .edit-group {
+            display: none;
+        }
+        .card.border-primary {
+            border-width: 2px !important;
+        }
+        #polishBaseInfo {
+            display: block;
+            margin-top: 5px;
+        }
+        .d-inline-flex {
+            justify-content: center;
+        }
+        .initial-thanks {
+            width: 100%;
+            margin-left: 0;
+            margin-right: 0;
+        }
+        .hospital {
+            height: 100px;
+            resize: none;
+        }
+        .form-container {
+            padding-left: 0;
+            padding-right: 0;
+        }
+        .info-card {
+            height: 100%;
+        }
+        .card-body {
+            padding: 1rem !important;
+        }
+        .form-control {
+            padding: 0.375rem 0.75rem;
+        }
+        textarea[name="hospital"] {
+            height: 80px;
+            resize: none;
+        }
+        textarea[name="original_text"] {
+            width: 100%;
+            resize: vertical;
+            min-height: 100px;
+        }
+        .card-title {
+            margin-bottom: 0.75rem !important;
+            font-size: 1.1rem;
+        }
+        .row {
+            --bs-gutter-y: 1rem;
+        }
+        label {
+            margin-bottom: 0.25rem;
+            font-size: 0.9rem;
+        }
+        .polish-warning.warning {
+            color: #dc3545 !important;
+            border: 1px solid #dc3545;
+            padding: 5px 10px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        /* 添加工具提示样式 */
+        .tooltip .tooltip-inner {
+            max-width: 500px;
+            background-color: white;
+            color: #333;
+            border: 1px solid #ddd;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .tooltip.bs-tooltip-end .tooltip-arrow::before {
+            border-right-color: #ddd;
+        }
+        .option-group {
+            min-width: 200px; /* 设置每组的最小宽度 */
+            border: 5px solid #ddd;
+        }
+        /* Popover 样式优化 */
+        .popover {
+            max-width: 90vw;
+            width: 400px;
+        }
+        .popover-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            padding: 0.75rem 1rem;
+        }
+        .popover-body {
+            padding: 1rem;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            .popover {
+                width: 280px;
+            }
+            .popover-body {
+                padding: 0.75rem;
+                font-size: 13px;
+            }
+        }
+        
+    </style>
+</head>
+<body>
+    <!-- 在 body 开始处添加加载提示 -->
+    <div class="loading-overlay d-none" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9999; display: flex; justify-content: center; align-items: center;">
+        <div class="text-white text-center">
+            <div class="spinner-border" role="status"></div>
+            <div class="mt-2">润色中...</div>
+        </div>
+    </div>
+
+    <div class="container mt-4">
+        <!-- <div class="d-flex justify-content-end mb-3">
+            <a href="/view_data" class="btn btn-info me-2" target="_blank">查看数据</a>
+            <a href="/export_data" class="btn btn-success">导出数据</a>
+        </div> -->
+        <h2 class="text-center mb-4">MediThanks AI</h2>
+        
+        <!-- 输入表单 -->
+        <form id="letterForm">
+            <input type="hidden" id="letter_id" name="letter_id">
+            <div class="row g-3">
+                <!-- 患者信息卡片 -->
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body p-3">
+                            <h5 class="card-title mb-3">患者信息</h5>
+                            <div class="form-group">
+                                <label for="patient_name">患者姓名</label>
+                                <input type="text" class="form-control" name="patient_name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="gender">性别</label>
+                                <select class="form-select" name="gender" required>
+                                    <option value="" selected disabled>请选择患者性别</option>
+                                    <option value="男">男</option>
+                                    <option value="女">女</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="age">年龄</label>
+                                <input type="number" class="form-control" name="age" min="0" max="150" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="disease">疾病</label>
+                                <input type="text" class="form-control" name="disease" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 医生信息卡片 -->
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body p-3">
+                            <h5 class="card-title mb-3">医生信息</h5>
+                            <div class="form-group">
+                                <label for="doctor_name">医生姓名</label>
+                                <input type="text" class="form-control" name="doctor_name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="doctor_gender">性别</label>
+                                <select class="form-select" name="doctor_gender" required>
+                                    <option value="" selected disabled>请选择医生性别</option>
+                                    <option value="男">男</option>
+                                    <option value="女">女</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="doctor_title">职称</label>
+                                <select class="form-select" name="doctor_title" required>
+                                    <option value="" selected disabled>请选择医生职称</option>
+                                    <option value="初级医师">初级医师</option>
+                                    <option value="主治医师">主治医师</option>
+                                    <option value="副主任医师">副主任医师</option>
+                                    <option value="主任医师">主任医师</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="doctor_department">科室</label>
+                                <input type="text" class="form-control" name="doctor_department" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="hospital">医院</label>
+                                <input type="text" class="form-control" name="hospital" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 初始感谢语 -->
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body p-3">
+                            <h5 class="card-title mb-3">初始感谢语</h5>
+                            <textarea class="form-control" name="original_text" rows="4" required id="initialThanksTextarea" 
+                                placeholder="请输入至少15字的感谢内容，表达对医生的感激之情。可以分享医生的专业帮助、服务态度、对您健康的改善或治疗过程中的支持和鼓励，您的真诚反馈是对医生的最大肯定！"></textarea>
+                            <small class="text-danger d-none" id="textLengthWarning">请输入至少15字的初始感谢语！</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 选择润色方向 -->
+            <div class="col-12">
+            <div class="polish-options card mb-3">
+                <div class="card-header d-flex align-items-center">
+                    <span>选择润色方向</span>
+                    <button type="button" 
+                                class="btn btn-link p-0 ms-2" 
+                                data-bs-toggle="popover" 
+                                data-bs-trigger="click"
+                                data-bs-html="true"
+                                data-bs-placement="auto"
+                                data-bs-container="body"
+                                title="润色方向说明"
+                                data-bs-content='
+                                    <div class="popover-content">
+                                        <div class="mb-3">
+                                            <strong class="text-primary">主体视角：</strong>
+                                            <div class="ms-2">• 以医生为中心：突出医生的专业能力和贡献</div>
+                                            <div class="ms-2">• 以患者为中心：强调医生对患者的帮助和意义</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <strong class="text-primary">目标导向：</strong>
+                                            <div class="ms-2">• 强调治疗过程：描述诊疗过程中的具体场景</div>
+                                            <div class="ms-2">• 强调治疗结果：强调治疗效果和健康改善</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <strong class="text-primary">个性信息：</strong>
+                                            <div class="ms-2">• 突出医生个性化信息：增加医生个性化称谓和内容</div>
+                                            <div class="ms-2">• 不含医生个性化信息：强调医生共性特质</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <strong class="text-primary">情感强度：</strong>
+                                            <div class="ms-2">• 加深情感强度：加深感激之情的表达</div>
+                                            <div class="ms-2">• 通用表达：避免使用过于情感化的词汇或夸张的表达</div>
+                                        </div>
+                                        <div>
+                                            <strong class="text-primary">语言风格：</strong>
+                                            <div class="ms-2">• 正式化表达：使用庄重礼貌的书面语</div>
+                                            <div class="ms-2">• 口语化表达：使用自然亲切的口语化表达</div>
+                                        </div>
+                                    </div>'>
+                            <i class="bi bi-question-circle text-primary"></i>
+                        </button>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                            <small class="text-muted polish-warning">请在每组中选择一个润色方向（必选）</small>
+                    </div>
+                    
+                    <!-- 使用网格布局 -->
+                        <div class="row justify-content-center">
+                        <!-- 第一组 -->
+                            <div class="col-12 col-md-2">
+                            <div class="option-group rounded p-2" data-group="perspective">
+                                <div class="text-center mb-2 fw-bold">组1：主体视角</div>
+                                <div class="alert alert-danger d-none mb-2 group-alert">请选择一个选项</div>
+                                <div class="d-flex flex-column align-items-center">
+                                    <button type="button" class="btn btn-outline-primary btn-polish" data-option="doctor_centered" data-group="perspective" style="width: 100%;">以医生为中心</button>
+                                    <button type="button" class="btn btn-outline-primary btn-polish" data-option="patient_centered" data-group="perspective" style="width: 100%;">以患者为中心</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 第二组 -->
+                            <div class="col-12 col-md-2">
+                            <div class="option-group rounded p-2" data-group="orientation">
+                                <div class="text-center mb-2 fw-bold">组2：目标导向</div>
+                                <div class="alert alert-danger d-none mb-2 group-alert">请选择一个选项</div>
+                                <div class="d-flex flex-column align-items-center">
+                                    <button type="button" class="btn btn-outline-primary btn-polish" data-option="process_oriented" data-group="orientation" style="width: 100%;">强调治疗过程</button>
+                                    <button type="button" class="btn btn-outline-primary btn-polish" data-option="result_oriented" data-group="orientation" style="width: 100%;">强调治疗结果</button>
+                                </div>
+                            </div>
+                            </div>
+                        
+                        <!-- 第三组 -->
+                            <div class="col-12 col-md-2">
+                            <div class="option-group rounded p-2" data-group="expression">
+                                    <div class="text-center mb-2 fw-bold">组3：个性信息</div>
+                                <div class="alert alert-danger d-none mb-2 group-alert">请选择一个选项</div>
+                                <div class="d-flex flex-column align-items-center">
+                                    <button type="button" class="btn btn-outline-primary btn-polish" data-option="personalized" data-group="expression" style="width: 100%;">突出医生个性化信息</button>
+                                    <button type="button" class="btn btn-outline-primary btn-polish" data-option="impersonalized" data-group="expression" style="width: 100%;">不含医生个性化信息</button>
+                                </div>
+                            </div>
+                            </div>
+                            
+                            <!-- 第四组 -->
+                            <div class="col-12 col-md-2">
+                                <div class="option-group rounded p-2" data-group="emotion_strength">
+                                    <div class="text-center mb-2 fw-bold">组4：情感强度</div>
+                                    <div class="alert alert-danger d-none mb-2 group-alert">请选择一个选项</div>
+                                    <div class="d-flex flex-column align-items-center">
+                                        <button type="button" class="btn btn-outline-primary btn-polish" data-option="emotional_intensity" data-group="emotion_strength" style="width: 100%;">加深情感强度</button>
+                                        <button type="button" class="btn btn-outline-primary btn-polish" data-option="general_emotion" data-group="emotion_strength" style="width: 100%;">通用表达</button>
+                                    </div>
+                            </div>
+                            </div>
+                        
+                            <!-- 第五组 -->
+                            <div class="col-12 col-md-2">
+                            <div class="option-group rounded p-2" data-group="style">
+                                <div class="text-center mb-2 fw-bold">组5：语言风格</div>
+                                <div class="alert alert-danger d-none mb-2 group-alert">请选择一个选项</div>
+                                <div class="d-flex flex-column align-items-center">
+                                    <button type="button" class="btn btn-outline-primary btn-polish" data-option="formal" data-group="style" style="width: 100%;">正式化表达</button>
+                                    <button type="button" class="btn btn-outline-primary btn-polish" data-option="colloquial" data-group="style" style="width: 100%;">口语化表达</button>
+                                </div>
+                            </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group text-center">
+                <div class="d-flex justify-content-center">
+                    <div style="width: 50%; display: flex; justify-content: center; position: relative; left: 70px;">
+                        <button type="submit" class="btn btn-primary me-2" id="polishButton">开始润色</button>
+                        <button type="button" class="btn btn-outline-secondary" id="resetToOriginal">重置为原始内容</button>
+                    </div>
+                </div>
+                <div class="text-center mt-2">
+                    <small class="text-muted" id="polishBaseInfo">将基于原始内容润色</small>
+                </div>
+            </div>
+        </form>
+        
+        <!-- 聊天历史 -->
+        <div class="chat-history mt-4">
+            <div id="rejectButtonContainer" class="d-none text-center mt-3">
+                <!--button class="btn btn-danger btn-sm ms-2" id="rejectButton" onclick="rejectPolish(${letter_id})">拒绝所有润色结果</button-->
+                
+                <small class="text-muted" id="rejectInfo">已达到最大润色次数，请选择采用一个润色结果，或拒绝所有润色结果并使用初始感谢语。</small>
+            </div>
+            <div id="chatMessages"></div>
+        </div>
+    </div>
+
+    <script src="https://vc.jd.com/web/js/jquery-3.1.1.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            let currentPolishBase = 'original';
+            let selectedPolishId = null;
+            let hasPolished = false;
+            let polishCount = 0; // 计数润色结果的数量
+            
+            // 初始化工具提示
+            const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+            const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl, {
+                html: true,
+                placement: 'right'
+            }));
+            
+            // 监听患者信息字段的变化
+            $('[name="patient_name"], [name="gender"], [name="age"], [name="disease"]').on('input change', function() {
+                // 清空润色历史
+                $('.chat-history .card').remove();
+                
+                // 重置润色基础
+                window.currentPolishBase = 'original';
+                window.selectedPolishId = null;
+                
+                // 移除所有卡片的选中状态
+                $('.card').removeClass('border-primary');
+                
+                // 更新提示信息
+                $('#polishBaseInfo').text('将基于原始内容润色');
+                
+                // 重置润色次数
+                polishCount = 0; // 重置计数
+                $('#rejectButtonContainer').addClass('d-none'); // 隐藏拒绝提示
+                $('#polishButton').prop('disabled', false); // 启用开始润色按钮
+                
+                console.log('患者信息变化，清空润色历史');
+                console.log('重置润色基础:', window.currentPolishBase);
+                console.log('重置选中ID:', window.selectedPolishId);
+            });
+            
+            // 保持其他监听器不变
+            $('#letterForm input[type="text"], #letterForm input[type="number"], #letterForm select, #letterForm textarea').not('[name="patient_name"], [name="gender"], [name="age"], [name="disease"]').on('input change', function() {
+                // 重置润色基础
+                window.currentPolishBase = 'original';
+                window.selectedPolishId = null;
+                
+                // 移除所有卡片的选中状态
+                $('.card').removeClass('border-primary');
+                
+                // 更新提示信息
+                $('#polishBaseInfo').text('将基于原始内容润色');
+                
+                console.log('表单变化，重置润色基础:', window.currentPolishBase);
+                console.log('重置选中ID:', window.selectedPolishId);
+            });
+            
+            // 修改润色选项按钮点击事件
+            $('.btn-polish').click(function() {
+                const $group = $(this).closest('.option-group');
+                const $buttons = $group.find('.btn-polish');
+                
+                // 如果当前按钮已经是选中状态，则取消选中
+                if ($(this).hasClass('active')) {
+                    $(this).removeClass('active').addClass('btn-outline-primary').removeClass('btn-primary');
+                } else {
+                    // 否则，取消同组其他按钮的选中状态，并选中当前按钮
+                    $buttons.removeClass('active btn-primary').addClass('btn-outline-primary');
+                    $(this).addClass('active').removeClass('btn-outline-primary').addClass('btn-primary');
+                }
+                
+                // 如果有任何按钮被选中，移除警告样式
+                if ($('.btn-polish.active').length > 0) {
+                    $('.polish-warning').removeClass('warning');
+                }
+            });
+
+            // 输入框获得焦点时清除默认提示
+            $('#initialThanksTextarea').focus(function() {
+                $(this).attr('placeholder', ''); // 清空提示
+            }).blur(function() {
+                if ($(this).val().trim() === '') {
+                    $(this).attr('placeholder', '请输入至少15字的感谢内容，表达对医生的感激之情。可以分享医生的专业帮助、服务态度、对您健康的改善或治疗过程中的支持和鼓励，您的真诚反馈是对医生的最大肯定！'); // 恢复提示
+                }
+            });
+
+            // 修改表单提交前验证
+            $('#letterForm').submit(function(e) {
+                e.preventDefault();
+    
+                // 检查每组是否至少选择了一个按钮
+                let allGroupsSelected = true; // 默认假设所有组都已选择
+                $('.option-group').each(function() {
+                    const $group = $(this);
+                    if ($group.find('.btn-polish.active').length === 0) {
+                        allGroupsSelected = false; // 如果某组没有选择，标记为 false
+                        $group.find('.group-alert').removeClass('d-none'); // 显示警告
+                    } else {
+                        $group.find('.group-alert').addClass('d-none'); // 隐藏警告
+                    }
+                });
+
+                // 检查初始感谢语的字数
+                const originalText = $('#initialThanksTextarea').val().trim();
+                if (originalText.length < 15) {
+                    $('#textLengthWarning').removeClass('d-none'); // 显示字数警告
+                    return false; // 阻止表单提交
+                } else {
+                    $('#textLengthWarning').addClass('d-none'); // 隐藏字数警告
+                }
+
+                if (!allGroupsSelected) {
+                    // 如果有组未选择，添加警告样式
+                    $('.polish-warning').addClass('warning');
+                    return false; // 阻止表单提交
+                }
+                
+                // 移除警告样式
+                $('.polish-warning').removeClass('warning');
+                
+                // 构建提交数据
+                const data = {
+                    patient_name: $('[name="patient_name"]').val(),
+                    gender: $('[name="gender"]').val(),
+                    age: $('[name="age"]').val(),
+                    disease: $('[name="disease"]').val(),
+                    doctor_name: $('[name="doctor_name"]').val(),
+                    doctor_title: $('[name="doctor_title"]').val(),
+                    doctor_department: $('[name="doctor_department"]').val(),
+                    doctor_gender: $('[name="doctor_gender"]').val(),
+                    hospital: $('[name="hospital"]').val(),
+                    original_text: originalText,
+                    polish_options: $('.btn-polish.active').map(function() {
+                        return $(this).data('option');
+                    }).get(),
+                    polish_base: window.currentPolishBase || 'original',
+                    previous_polish_id: window.selectedPolishId || null
+                };
+                
+                // 显示加载动画
+                $('.loading-overlay').removeClass('d-none');
+                
+                // 发送 AJAX 请求
+                $.ajax({
+                    url: '/polish_letter',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(data),
+                    success: function(response) {
+                        // 隐藏加载动画
+                        $('.loading-overlay').addClass('d-none');
+                        
+                        if (response.status === 'success') {
+                            // 增加润色结果计数
+                            polishCount++;
+
+                            // 创建模板并替换变量
+                            let template = $('#polishResultTemplate').html();
+                            template = template
+                                .replace(/\${polished_text}/g, response.polished_text)
+                                .replace(/\${polish_id}/g, response.polish_id)
+                                .replace(/\${letter_id}/g, response.letter_id);
+                            
+                                
+                            const polishResult = $(template);
+
+                            counts = response.count
+                            console.log('Count:', counts); //
+                            // 将新结果插入到顶部
+                            $('#chatMessages').prepend(polishResult);
+                            //polishResult.insertBefore('#rejectButtonContainer');
+
+                            // 动态更新"拒绝所有润色结果"按钮的显示状态
+                            if (polishCount === 5) {
+                                polishResult.find('.reject-all-btn').show();
+                                $('#rejectButtonContainer').removeClass('d-none'); // 显示拒绝提示
+                                $('#polishButton').prop('disabled', true); // 禁用开始润色按钮
+                            } else {
+                                polishResult.find('.reject-all-btn').hide();
+                            }
+
+                            
+                        }
+                    },
+                    error: function(xhr) {
+                        // 隐藏加载动画
+                        $('.loading-overlay').addClass('d-none');
+                        alert('润色失败: ' + xhr.responseJSON.message);
+                    }
+                });
+            });
+            
+            // 点击"基于此内容"按钮
+            $(document).on('click', '.btn-use-this', function(e) {
+                e.preventDefault();
+                $('.card').removeClass('border-primary');
+                $(this).closest('.card').addClass('border-primary');
+                selectedPolishId = $(this).data('polish-id');
+                currentPolishBase = 'previous';
+                $('#polishBaseInfo').text('将基于选中的润色结果继续润色');
+            });
+            
+            // 点击"重置为原始内容"按钮
+            $('#resetToOriginal').click(function(e) {
+                e.preventDefault();
+                $('.card').removeClass('border-primary');
+                window.selectedPolishId = null;
+                window.currentPolishBase = 'original';
+                $('#polishBaseInfo').text('将基于原始内容润色');
+                
+                console.log('重置按钮点击，当前润色基础:', window.currentPolishBase); // 添加调试日志
+            });
+            
+            // 初始化
+            updatePolishButton();
+
+            // 点击编辑按钮
+            $(document).on('click', '.btn-edit', function() {
+                const $card = $(this).closest('.card');
+                const $content = $card.find('.card-text');
+                const $normalButtons = $card.find('.normal-buttons');
+                const $editButtons = $card.find('.edit-buttons');
+                
+                // 将文本转换为可编辑区域
+                const text = $content.text();
+                $content.html(`<textarea class="form-control">${text}</textarea>`);
+                
+                // 切换按钮组
+                $normalButtons.hide();
+                $editButtons.show();
+            });
+
+            // 点击取消按钮
+            $(document).on('click', '.btn-cancel', function() {
+                const $card = $(this).closest('.card');
+                const $content = $card.find('.card-text');
+                const $normalButtons = $card.find('.normal-buttons');
+                const $editButtons = $card.find('.edit-buttons');
+                const originalText = $content.attr('data-original-text');
+                
+                // 恢复原始文本
+                $content.html(originalText);
+                
+                // 切换按钮组
+                $normalButtons.show();
+                $editButtons.hide();
+            });
+
+            // 修改保存按钮的 onclick 事件，改为使用事件委托
+            $(document).on('click', '.btn-save', function() {
+                const polishId = $(this).data('polish-id');
+                const editedText = $(`#polish-text-edit-${polishId}`).val();
+                
+                $.ajax({
+                    url: '/update_polish',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        polish_id: polishId,
+                        edited_text: editedText
+                    }),
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            // 更新显示的文本
+                            $(`#polish-text-${polishId}`).text(editedText);
+                            
+                            // 记录用户行为
+                            fetch('/record_action', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    action_type: 'click_save',
+                                    polish_id: polishId,
+                                    action_detail: '保存编辑后的润色结果'
+                                })
+                            }).catch(error => console.error('记录用户行为失败:', error));
+                            
+                            // 退出编辑模式
+                            exitEditMode(polishId);
+                        } else {
+                            alert('保存失败：' + response.message);
+                        }
+                    },
+                    error: function(xhr) {
+                        alert('保存失败：' + (xhr.responseJSON?.message || '未知错误'));
+                    }
+                });
+            });
+
+        });
+
+        // 基于此内容
+        function useAsBase(polishId) {
+            // 获取选中的润色结果文本
+            const selectedText = $(`#polish-text-${polishId}`).text();
+            console.log('选中的润色结果:', selectedText); // 调试日志
+            
+            // 更新UI状态
+            $('.card').removeClass('border-primary');
+            $(`#polish-text-${polishId}`).closest('.card').addClass('border-primary');
+            
+            // 设置全局变量
+            window.selectedPolishId = polishId;
+            window.currentPolishBase = 'previous';
+            $('#polishBaseInfo').text('将基于选中的润色结果继续润色');
+
+            // 记录用户行为
+            fetch('/record_action', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action_type: 'click_base_on',
+                    polish_id: polishId,
+                    action_detail: `基于润色结果ID: ${polishId}`
+                })
+            }).catch(error => console.error('记录用户行为失败:', error));
+        }
+
+        // 开始编辑
+        function startEdit(polishId) {
+            const $text = $(`#polish-text-${polishId}`);
+            const $edit = $(`#polish-text-edit-${polishId}`);
+            const $normalButtons = $(`#normal-buttons-${polishId}`);
+            const $editButtons = $(`#edit-buttons-${polishId}`);
+
+            // 将当前文本复制到编辑区域
+            $edit.val($text.text());
+            
+            // 切换显示状态
+            $text.hide();
+            $edit.show();
+            $normalButtons.hide();
+            $editButtons.show();
+        }
+
+        // 保存编辑
+        function saveEdit(polishId) {
+            const editedText = $(`#polish-text-edit-${polishId}`).val();
+            
+            $.ajax({
+                url: '/update_polish',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    polish_id: polishId,
+                    edited_text: editedText
+                }),
+                success: function(response) {
+                    if (response.status === 'success') {
+                        // 更新显示的文本
+                        $(`#polish-text-${polishId}`).text(editedText);
+                        
+                        // 记录用户行为
+                        fetch('/record_action', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                action_type: 'click_save',
+                                polish_id: polishId,
+                                action_detail: '保存编辑后的润色结果'
+                            })
+                        }).catch(error => console.error('记录用户行为失败:', error));
+                        
+                        // 退出编辑模式
+                        exitEditMode(polishId);
+                    } else {
+                        alert('保存失败：' + response.message);
+                    }
+                },
+                error: function(xhr) {
+                    alert('保存失败：' + (xhr.responseJSON?.message || '未知错误'));
+                }
+            });
+        }
+
+        // 取消编辑
+        function cancelEdit(polishId) {
+            exitEditMode(polishId);
+        }
+
+        // 退出编辑模式
+        function exitEditMode(polishId) {
+            $(`#polish-text-${polishId}`).show();
+            $(`#polish-text-edit-${polishId}`).hide();
+            $(`#normal-buttons-${polishId}`).show();
+            $(`#edit-buttons-${polishId}`).hide();
+        }
+
+        // 修改采用润色结果函数
+        function adoptPolish(polishId, letterId, button) {
+            // 获取要复制的文本
+            const textToCopy = button.getAttribute('data-text');
+            
+            // 创建临时文本区域
+            const textarea = document.createElement('textarea');
+            textarea.value = textToCopy;
+            textarea.style.position = 'fixed';  // 防止页面滚动
+            textarea.style.opacity = '0';       // 隐藏元素
+            document.body.appendChild(textarea);
+            
+            try {
+                // 对于现代浏览器，尝试使用 Clipboard API
+                if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(textToCopy).then(() => {
+                        proceedWithAdoption();
+                    }).catch((err) => {
+                        // 如果 Clipboard API 失败，回退到传统方法
+                        fallbackCopyText();
+                    });
+                } else {
+                    // 对于不支持 Clipboard API 的浏览器，使用传统方法
+                    fallbackCopyText();
+                }
+            } catch (err) {
+                console.error('复制失败:', err);
+                // 即使复制失败也继续采用流程
+                proceedWithAdoption();
+            }
+
+            function fallbackCopyText() {
+                try {
+                    // 选择文本
+                    textarea.select();
+                    textarea.setSelectionRange(0, 99999); // 对于移动设备
+                    // 尝试复制
+                    document.execCommand('copy');
+                    proceedWithAdoption();
+                } catch (err) {
+                    console.error('传统复制方法失败:', err);
+                    proceedWithAdoption();
+                }
+            }
+
+            function proceedWithAdoption() {
+                // 清理临时元素
+                document.body.removeChild(textarea);
+                
+                // 继续原有的采用逻辑
+                fetch('/adopt_polish', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        polish_id: polishId,
+                        letter_id: letterId
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert('采用润色结果成功，内容已复制到剪贴板');
+                        window.location.href = '/copy_success';
+                    } else {
+                        alert('错误：' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('采用失败，请重试');
+                });
+            }
+        }
+        
+        // 润色方向简介提示
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化所有 popovers
+            var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+            var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+                return new bootstrap.Popover(popoverTriggerEl);
+            });
+            
+            // 点击页面其他地方关闭 popover
+            document.addEventListener('click', function(event) {
+                if (!event.target.closest('[data-bs-toggle="popover"]')) {
+                    popoverList.forEach(function(popover) {
+                        popover.hide();
+                    });
+                }
+            });
+
+            popoverTriggerList.forEach(function (trigger) {
+                trigger.addEventListener('touchstart', function () {
+                    var popover = bootstrap.Popover.getInstance(this);
+                    if (popover) {
+                        popover.toggle();
+                    } else {
+                        new bootstrap.Popover(this).toggle();
+                    }
+                });
+            });
+        });
+
+        // 修改拒绝函数
+        function rejectPolish(letterId) {
+            // 获取要复制的文本
+            const initialThanksText = $('#initialThanksTextarea').val();
+            
+            // 创建临时文本区域
+            const textarea = document.createElement('textarea');
+            textarea.value = initialThanksText;
+            textarea.style.position = 'fixed';  // 防止页面滚动
+            textarea.style.opacity = '0';       // 隐藏元素
+            document.body.appendChild(textarea);
+            
+            try {
+                // 对于现代浏览器，尝试使用 Clipboard API
+                if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(initialThanksText).then(() => {
+                        proceedWithRejection();
+                    }).catch((err) => {
+                        // 如果 Clipboard API 失败，回退到传统方法
+                        fallbackCopyText();
+                    });
+                } else {
+                    // 对于不支持 Clipboard API 的浏览器，使用传统方法
+                    fallbackCopyText();
+                }
+            } catch (err) {
+                console.error('复制失败:', err);
+                // 即使复制失败也继续拒绝流程
+                proceedWithRejection();
+            }
+
+            function fallbackCopyText() {
+                try {
+                    // 选择文本
+                    textarea.select();
+                    textarea.setSelectionRange(0, 99999); // 对于移动设备
+                    // 尝试复制
+                    document.execCommand('copy');
+                    proceedWithRejection();
+                } catch (err) {
+                    console.error('传统复制方法失败:', err);
+                    proceedWithRejection();
+                }
+            }
+
+            function proceedWithRejection() {
+                // 清理临时元素
+                document.body.removeChild(textarea);
+                
+                // 继续原有的拒绝逻辑
+                fetch('/adopt_polish', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        polish_id: NaN,
+                        letter_id: letterId
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert('已拒绝所有润色结果，初始感谢语已复制到剪贴板');
+                        window.location.href = '/copy_success';
+                    } else {
+                        alert('错误：' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('操作失败，请重试');
+                });
+            }
+        }
+    </script>
+
+    <!-- 修改润色结果卡片模板 -->
+    <script id="polishResultTemplate" type="text/template">
+        <div class="d-flex justify-content-end mt-3">
+            
+            <!--button class="btn btn-danger btn-sm ms-2" onclick="rejectPolish(${letter_id})">拒绝所有润色结果</button-->
+            <!-- 这里先不进行条件判断，后续通过 JavaScript 动态控制按钮显示 -->
+            <button class="btn btn-danger btn-sm ms-2 reject-all-btn" 
+                onclick="rejectPolish(${letter_id})">拒绝所有润色结果</button>
+        </div>
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="polish-text-container">
+                    <!-- 显示文本区域 -->
+                    <div class="polish-text" id="polish-text-${polish_id}">${polished_text}</div>
+                    <!-- 编辑文本区域 -->
+                    <textarea class="polish-text-edit form-control" id="polish-text-edit-${polish_id}" style="display: none;">${polished_text}</textarea>
+                </div>
+                <div class="d-flex justify-content-end mt-3">
+                    <!-- 正常状态的按钮组 -->
+                    <div class="normal-buttons" id="normal-buttons-${polish_id}">
+                        <button class="btn btn-outline-primary btn-sm me-2" onclick="useAsBase(${polish_id})">基于此内容</button>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="startEdit(${polish_id})">编辑</button>
+                        <button class="btn btn-outline-success btn-sm ms-2" 
+                            onclick="adoptPolish(${polish_id}, ${letter_id}, this);" 
+                            data-text="${polished_text}">采用</button>
+                        
+                    </div>
+                    <!-- 编辑状态的按钮组 -->
+                    <div class="edit-buttons" id="edit-buttons-${polish_id}" style="display: none;">
+                        <button class="btn btn-outline-primary btn-sm me-2" onclick="saveEdit(${polish_id})">保存</button>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="cancelEdit(${polish_id})">取消</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </script>
+</body>
+</html> 

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>数据查看</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-4">
+        <h2>感谢信数据</h2>
+        
+        <!-- 感谢信列表 -->
+        <h3 class="mt-4">感谢信记录</h3>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>患者ID</th>
+                        <th>患者姓名</th>
+                        <th>性别</th>
+                        <th>年龄</th>
+                        <th>疾病</th>
+                        <th>医生姓名</th>
+                        <th>医生性别</th>
+                        <th>医生职称</th>
+                        <th>科室</th>
+                        <th>医院</th>
+                        <th>原始内容</th>
+                        <th>创建时间</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for letter in letters %}
+                    <tr>
+                        <td>{{ letter.id }}</td>
+                        <td>{{ letter.patient_id }}</td>
+                        <td>{{ letter.patient_name }}</td>
+                        <td>{{ letter.gender }}</td>
+                        <td>{{ letter.age }}</td>
+                        <td>{{ letter.disease }}</td>
+                        <td>{{ letter.doctor_name }}</td>
+                        <td>{{ letter.doctor_gender }}</td>
+                        <td>{{ letter.doctor_title }}</td>
+                        <td>{{ letter.doctor_department }}</td>
+                        <td>{{ letter.hospital }}</td>
+                        <td>{{ letter.original_text }}</td>
+                        <td>{{ letter.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- 润色历史 -->
+        <h3 class="mt-4">润色历史</h3>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>感谢信ID</th>
+                        <th>润色选项</th>
+                        <th>润色前内容</th>
+                        <th>润色后内容</th>
+                        <th>创建时间</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for history in polish_history %}
+                    <tr>
+                        <td>{{ history.id }}</td>
+                        <td>{{ history.letter_id }}</td>
+                        <td>{{ history.polish_options }}</td>
+                        <td>{{ history.previous_text }}</td>
+                        <td>{{ history.polished_text }}</td>
+                        <td>{{ history.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- 采纳记录 -->
+        <h3 class="mt-4">采纳记录</h3>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>患者ID</th>
+                        <th>感谢信ID</th>
+                        <th>润色记录ID</th>
+                        <th>采纳时间</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for adopted in adopted_polish %}
+                    <tr>
+                        <td>{{ adopted.id }}</td>
+                        <td>{{ Letter.query.get(adopted.letter_id).patient_id if Letter.query.get(adopted.letter_id) else 'N/A' }}</td>
+                        <td>{{ adopted.letter_id }}</td>
+                        <td>{{ adopted.polish_id }}</td>
+                        <td>{{ adopted.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- 用户行为记录 -->
+        <h3 class="mt-4">用户行为记录</h3>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>患者姓名</th>
+                        <th>性别</th>
+                        <th>年龄</th>
+                        <th>疾病</th>
+                        <th>行为类型</th>
+                        <th>行为详情</th>
+                        <th>感谢信ID</th>
+                        <th>润色记录ID</th>
+                        <th>操作时间</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for action in user_actions %}
+                    <tr>
+                        <td>{{ action.id }}</td>
+                        <td>{{ action.patient_name }}</td>
+                        <td>{{ action.gender }}</td>
+                        <td>{{ action.age }}</td>
+                        <td>{{ action.disease }}</td>
+                        <td>{{ action.action_type }}</td>
+                        <td>{{ action.action_detail }}</td>
+                        <td>{{ action.letter_id }}</td>
+                        <td>{{ action.polish_id }}</td>
+                        <td>{{ action.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- 患者信息表 -->
+        <h3 class="mt-4">患者记录</h3>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>患者ID</th>
+                        <th>姓名</th>
+                        <th>性别</th>
+                        <th>年龄</th>
+                        <th>疾病</th>
+                        <th>创建时间</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for patient in patients %}
+                    <tr>
+                        <td>{{ patient.id }}</td>
+                        <td>{{ patient.patient_name }}</td>
+                        <td>{{ patient.gender }}</td>
+                        <td>{{ patient.age }}</td>
+                        <td>{{ patient.disease }}</td>
+                        <td>{{ patient.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html> 
