@@ -6,6 +6,12 @@
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
 </p>
 
+## 贡献者
+
+<!-- readme: collaborators,contributors -start -->
+
+<!-- readme: collaborators,contributors -end -->
+
 ## 项目简介
 
 MediThanks AI 是一个基于人工智能的医患感谢信生成系统，帮助患者为医生创建个性化、专业化的感谢信。系统通过DeepSeek AI API对用户输入的初始感谢内容进行智能润色，提供多种风格和角度的表达方式。
